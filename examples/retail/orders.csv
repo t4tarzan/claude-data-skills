@@ -1,0 +1,9 @@
+order_id,order_date,customer_email,platform,tier,gmv,items,is_plus
+1001,2026-06-01,asha@example.com,App-Android,Metro,2499.00,3,true
+1002,2026-06-01,ravi@example.com,Desktop,Tier-1,899.50,1,false
+1003,2026-06-02,meera@example.com,App-iOS,Tier-2,15999.00,2,true
+1004,2026-06-02,,mWeb,Tier-3,349.00,1,false
+1005,2026-06-03,john@example.com,App-Android,Metro,4999.99,5,true
+1006,2026-06-03,priya@example.com,Desktop,Tier-1,1299.00,2,false
+1007,2026-06-04,arjun@example.com,App-iOS,Metro,7499.00,4,true
+1008,2026-06-04,sara@example.com,mWeb,Tier-2,599.00,1,false

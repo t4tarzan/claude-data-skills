@@ -1,0 +1,6 @@
+[
+  {"seller_id": "S-01", "name": "Nova Retail", "segment": "F-Assured", "cancellation_rate": 0.012, "active": true},
+  {"seller_id": "S-02", "name": "Bharat Traders", "segment": "marketplace", "cancellation_rate": 0.048, "active": true},
+  {"seller_id": "S-03", "name": "Metro Mart", "segment": "FBF", "cancellation_rate": 0.006, "active": false},
+  {"seller_id": "S-04", "name": "Sunrise Goods", "segment": "marketplace", "cancellation_rate": 0.091, "active": true}
+]
