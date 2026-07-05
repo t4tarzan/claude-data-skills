@@ -89,13 +89,24 @@ def _build_silver(con: sqlite3.Connection, catalog: dict) -> tuple[list[dict], l
     return lineage, quality
 
 
+_ID_RE = __import__("re").compile(r"(^|_)(id|key|code|no|num|number|uuid|guid)($|_)", __import__("re").I)
+
+
+def _id_like(name: str) -> bool:
+    """A numeric column named like an identifier is not a measure (don't sum an id), even if unique."""
+    return bool(_ID_RE.search(name)) or name.lower().endswith("id")
+
+
 def _classify(t: dict) -> dict:
-    """Split a table's columns into grain (date), measures (numeric non-key), dims (low-card non-pii-key)."""
+    """Split a table's columns into grain (date), measures (numeric quantity), dims (low-card non-pii-key).
+
+    A numeric column is a MEASURE unless its NAME looks like an identifier — uniqueness alone
+    does not make it a key (a daily gmv can be coincidentally unique yet is still a measure)."""
     keys = set(t.get("candidate_keys") or [])
     pii = {p["column"].split(".", 1)[1] for p in _table_pii(t)}
     grain = next((c["name"] for c in t["columns"] if c["type"] in ("date", "datetime")), None)
     measures = [c["name"] for c in t["columns"]
-                if c["type"] in ("integer", "real") and c["name"] not in keys and c["name"] != grain]
+                if c["type"] in ("integer", "real") and c["name"] != grain and not _id_like(c["name"])]
     dims = [c["name"] for c in t["columns"]
             if c["type"] in ("text", "boolean") and c["name"] not in keys
             and c["name"] not in pii and c["name"] != grain

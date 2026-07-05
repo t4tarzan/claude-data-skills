@@ -26,6 +26,8 @@ import architect
 import bi as bi_stage
 import designer
 import engineer
+import ml as ml_stage
+import scientist as scientist_stage
 from _run import RunContext
 
 # the stage contract (docs/01) — consumes/produces per stage. `optional` never forces a producer.
@@ -36,8 +38,8 @@ STAGES: dict[str, dict] = {
     "analyst":   {"consumes": ["gold"], "optional": ["semantic"], "produces": ["reports", "visuals"]},
     # branches + plane (registered for the resolver; implemented in P6-P8)
     "bi":        {"consumes": ["gold", "semantic"], "produces": ["dashboard", "access_model"]},
-    "scientist": {"consumes": ["gold"], "produces": ["model", "eval"], "todo": True},
-    "ml":        {"consumes": ["model"], "produces": ["service"], "todo": True},
+    "scientist": {"consumes": ["gold"], "produces": ["model", "eval"]},
+    "ml":        {"consumes": ["model"], "produces": ["service"]},
     "sre":       {"consumes": ["service"], "produces": ["deployment"], "todo": True},
 }
 SPINE_ORDER = ["architect", "engineer", "designer", "analyst", "bi", "scientist", "ml", "sre"]
@@ -109,6 +111,10 @@ def _run_stage(stage: str, opts: dict) -> dict:
         return analyst.run(root, slug, questions=opts.get("ask"))
     if stage == "bi":
         return bi_stage.run(root, slug, cadence=opts.get("refresh_cadence", "daily"))
+    if stage == "scientist":
+        return scientist_stage.run(root, slug, target=opts.get("target"), fact=opts.get("fact"))
+    if stage == "ml":
+        return ml_stage.run(root, slug)
     raise NotImplementedError(stage)
 
 
@@ -145,12 +151,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--metrics-dir", default=None, help="authored metric defs (for designer)")
     ap.add_argument("--ask", action="append", default=None, help="a question (for analyst; repeatable)")
     ap.add_argument("--gold", default=None, help="bring-your-own gold dir (skip architect+engineer)")
+    ap.add_argument("--target", default=None, help="measure to predict (scientist)")
+    ap.add_argument("--fact", default=None, help="gold fact to model (scientist)")
     ap.add_argument("--policy", default="synthesize", choices=["synthesize", "ask", "strict"])
     args = ap.parse_args(argv)
 
     selection = [s.strip() for s in args.stages.split(",") if s.strip()]
     opts = {"run_root": args.run_root, "slug": args.slug, "sources": args.sources,
-            "metrics_dir": args.metrics_dir, "ask": args.ask,
+            "metrics_dir": args.metrics_dir, "ask": args.ask, "target": args.target, "fact": args.fact,
             "policy": "synthesize" if args.policy == "ask" else args.policy,
             "supplied": {"gold": args.gold}}
     try:

@@ -42,8 +42,9 @@ class TestResolver(unittest.TestCase):
         self.assertEqual(reasons, [])
 
     def test_unimplemented_stage_errors(self):
+        # sre is not implemented until P8; selecting it should error clearly
         with self.assertRaises(rp.ResolveError):
-            rp.resolve(["scientist"], supplied=set(), policy="synthesize")
+            rp.resolve(["sre"], supplied={"service"}, policy="synthesize")
 
 
 class TestPipelineSmoke(unittest.TestCase):
