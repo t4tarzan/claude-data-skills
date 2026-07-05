@@ -1,0 +1,12 @@
+{
+  "name": "data-team",
+  "displayName": "Data Team",
+  "version": "0.1.0",
+  "description": "The modern data team as one composable, model-selectable skill — pick any subset of eight roles (Architect · Engineer · Designer · Analyst · BI · Scientist · ML · SRE) and run them as a coherent pipeline over your data: raw files → typed medallion (bronze/silver/gold) → governed semantic layer → reports, charts, and receipts. v1 ships the spine.",
+  "author": { "name": "t4tarzan", "email": "rao.vinu@gmail.com" },
+  "homepage": "https://aina.dkube.app",
+  "repository": "https://github.com/t4tarzan/data-team",
+  "license": "MIT",
+  "keywords": ["data", "analytics", "medallion", "semantic-layer", "metrics", "etl", "governance", "duckdb", "sqlite"],
+  "skills": "./skills/"
+}
