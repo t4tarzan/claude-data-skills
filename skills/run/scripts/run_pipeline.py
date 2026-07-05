@@ -23,6 +23,7 @@ import shutil
 
 import analyst
 import architect
+import bi as bi_stage
 import designer
 import engineer
 from _run import RunContext
@@ -34,7 +35,7 @@ STAGES: dict[str, dict] = {
     "designer":  {"consumes": ["gold"], "optional": [], "produces": ["semantic", "conformance"]},
     "analyst":   {"consumes": ["gold"], "optional": ["semantic"], "produces": ["reports", "visuals"]},
     # branches + plane (registered for the resolver; implemented in P6-P8)
-    "bi":        {"consumes": ["gold", "semantic"], "produces": ["dashboard", "access_model"], "todo": True},
+    "bi":        {"consumes": ["gold", "semantic"], "produces": ["dashboard", "access_model"]},
     "scientist": {"consumes": ["gold"], "produces": ["model", "eval"], "todo": True},
     "ml":        {"consumes": ["model"], "produces": ["service"], "todo": True},
     "sre":       {"consumes": ["service"], "produces": ["deployment"], "todo": True},
@@ -106,6 +107,8 @@ def _run_stage(stage: str, opts: dict) -> dict:
         return designer.run(root, slug, metrics_dir=opts.get("metrics_dir"))
     if stage == "analyst":
         return analyst.run(root, slug, questions=opts.get("ask"))
+    if stage == "bi":
+        return bi_stage.run(root, slug, cadence=opts.get("refresh_cadence", "daily"))
     raise NotImplementedError(stage)
 
 
