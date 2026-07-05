@@ -1,16 +1,17 @@
 {
+  "name": "claude-data-skills",
   "version": 1,
   "owner": "t4tarzan",
-  "description": "Data-team tooling — a whole data team as one Claude Code skill.",
+  "description": "Claude Data Skills — a marketplace of data-lifecycle skills for Claude Code. First skill: data-team.",
   "plugins": [
     {
       "name": "data-team",
       "displayName": "Data Team",
       "description": "Pick any subset of eight data roles and run them as one composable pipeline over your data: raw → medallion → governed semantic layer → reports with receipts.",
       "version": "0.1.0",
-      "source": { "type": "github", "repo": "t4tarzan/data-team" },
-      "homepage": "https://github.com/t4tarzan/data-team",
-      "repository": "https://github.com/t4tarzan/data-team",
+      "source": ".",
+      "homepage": "https://github.com/t4tarzan/claude-data-skills",
+      "repository": "https://github.com/t4tarzan/claude-data-skills",
       "author": { "name": "t4tarzan" },
       "keywords": ["data", "analytics", "medallion", "semantic-layer", "metrics", "governance"],
       "defaultEnabled": true

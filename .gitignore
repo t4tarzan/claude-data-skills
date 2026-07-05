@@ -1,0 +1,8 @@
+# run outputs
+data-team-out/
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+# os
+.DS_Store

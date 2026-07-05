@@ -45,8 +45,8 @@ invoked `/aina-skill:build`).
   ```
 - **End-user one-liner** (goes on the README and the `:9020` sidebar page):
   ```
-  /plugin marketplace add t4tarzan/data-team
-  /plugin install data-team@data-team
+  /plugin marketplace add t4tarzan/claude-data-skills
+  /plugin install data-team@claude-data-skills
   ```
   then `/data-team:run`.
 - **npm option (kept open):** the marketplace entry can later switch its `source` to
