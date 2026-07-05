@@ -1,0 +1,15 @@
+{
+  "metric": "aov",
+  "label": "Average Order Value",
+  "description": "GMV per order — a ratio, so it must be recomputed from components on any rollup, never summed.",
+  "aggregation": "ratio",
+  "numerator": "gmv",
+  "denominator": "orders_count",
+  "dimensions": ["platform", "tier", "is_plus"],
+  "time_grains": ["daily", "weekly", "monthly"],
+  "rollups": { "daily": "gold.agg_orders_daily" },
+  "owner": "finance-cdm",
+  "unit": "INR",
+  "round": 2,
+  "lineage": ["gold.agg_orders_daily"]
+}

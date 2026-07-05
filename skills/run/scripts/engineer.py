@@ -109,14 +109,19 @@ def _table_pii(t: dict) -> list[dict]:
     return t.get("_pii", [])
 
 
-def _build_gold(con: sqlite3.Connection, catalog: dict, pii_by_table: dict) -> tuple[list, list, list]:
-    """Create gold facts (agg_<t>_daily) + dims (dim_<t>). Returns (lineage, quality, receipts)."""
-    lineage, quality, receipts = [], [], []
+def _build_gold(con: sqlite3.Connection, catalog: dict, pii_by_table: dict) -> tuple[list, list, list, list]:
+    """Create gold facts (agg_<t>_daily) + dims (dim_<t>). Returns (lineage, quality, receipts, schema).
+
+    The `schema` is the gold contract the Data Designer consumes — it DECLARES each fact's
+    grain/dims/measures (+ types) so the Designer never has to re-guess which columns are
+    measures vs. dimensions (a boolean dim stored 0/1 is not a summable measure)."""
+    lineage, quality, receipts, schema = [], [], [], []
     for t in catalog["tables"]:
         if t["kind"] != "tabular":
             continue
         t = {**t, "_pii": pii_by_table.get(t["table"].split(".", 1)[1], [])}
         name = t["table"].split(".", 1)[1]
+        coltype = {col["name"]: col["type"] for col in t["columns"]}
         c = _classify(t)
 
         if c["grain"] and c["measures"]:
@@ -136,6 +141,10 @@ def _build_gold(con: sqlite3.Connection, catalog: dict, pii_by_table: dict) -> t
             con.execute(f'CREATE INDEX gold.{_q("ix_" + gold_name)} ON {_q(gold_name)} ({idx_cols})')
             lineage.append({"output": f"gold.{gold_name}", "from": [f"silver.{name}"],
                             "logic": f"agg by day({c['grain']}) x {c['dims']}: sum({c['measures']}), count"})
+            schema.append({"table": gold_name, "kind": "fact", "grain": grain_day,
+                           "dims": c["dims"], "measures": c["measures"], "count_col": f"{name}_count",
+                           "measure_types": {m: coltype.get(m, "real") for m in c["measures"]},
+                           "owner": t.get("owner", "unassigned")})
             # reconciliation: every summed measure must match silver (the signature receipt)
             for m in c["measures"]:
                 s = con.execute(f'SELECT round(coalesce(sum({_q(m)}),0),6) FROM silver.{_q(name)}').fetchone()[0]
@@ -160,7 +169,9 @@ def _build_gold(con: sqlite3.Connection, catalog: dict, pii_by_table: dict) -> t
             n = con.execute(f'SELECT count(*) FROM gold.{_q(dim_name)}').fetchone()[0]
             quality.append({"check": f"gold.{dim_name} conformed", "result": "pass",
                             "detail": f"{n} rows; PII dropped: {dropped_pii or 'none'}"})
-    return lineage, quality, receipts
+            schema.append({"table": dim_name, "kind": "dim", "keys": c["keys"],
+                           "owner": t.get("owner", "unassigned")})
+    return lineage, quality, receipts, schema
 
 
 def run(run_root: str, slug: str) -> dict:
@@ -202,9 +213,13 @@ def run(run_root: str, slug: str) -> dict:
     gcon = sqlite3.connect(gold_db)
     gcon.execute("ATTACH DATABASE ? AS silver", (str(silver_db),))
     gcon.execute("ATTACH DATABASE ? AS gold", (str(gold_db),))
-    gold_lineage, gold_quality, receipts = _build_gold(gcon, catalog, pii_by_table)
+    gold_lineage, gold_quality, receipts, gold_schema = _build_gold(gcon, catalog, pii_by_table)
     gcon.commit()
     gcon.close()
+    # the gold contract the Designer consumes (declared grain/dims/measures per fact)
+    (ctx.path("gold") / "gold_catalog.json").write_text(
+        json.dumps({"layer": "gold", "facts": [s for s in gold_schema if s["kind"] == "fact"],
+                    "dimensions": [s for s in gold_schema if s["kind"] == "dim"]}, indent=2) + "\n")
 
     # --- lineage graph (inherit architect's file->bronze edges) + write file ---
     inherited = ctx.inherited_governance()
