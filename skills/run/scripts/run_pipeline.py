@@ -28,6 +28,7 @@ import designer
 import engineer
 import ml as ml_stage
 import scientist as scientist_stage
+import sre as sre_stage
 from _run import RunContext
 
 # the stage contract (docs/01) — consumes/produces per stage. `optional` never forces a producer.
@@ -40,7 +41,7 @@ STAGES: dict[str, dict] = {
     "bi":        {"consumes": ["gold", "semantic"], "produces": ["dashboard", "access_model"]},
     "scientist": {"consumes": ["gold"], "produces": ["model", "eval"]},
     "ml":        {"consumes": ["model"], "produces": ["service"]},
-    "sre":       {"consumes": ["service"], "produces": ["deployment"], "todo": True},
+    "sre":       {"consumes": ["service"], "produces": ["deployment"]},
 }
 SPINE_ORDER = ["architect", "engineer", "designer", "analyst", "bi", "scientist", "ml", "sre"]
 PRODUCER = {k: s for s, spec in STAGES.items() for k in spec["produces"]}
@@ -115,6 +116,9 @@ def _run_stage(stage: str, opts: dict) -> dict:
         return scientist_stage.run(root, slug, target=opts.get("target"), fact=opts.get("fact"))
     if stage == "ml":
         return ml_stage.run(root, slug)
+    if stage == "sre":
+        return sre_stage.run(root, slug, min_replicas=opts.get("min_replicas", 2),
+                             max_replicas=opts.get("max_replicas", 6))
     raise NotImplementedError(stage)
 
 
@@ -153,12 +157,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--gold", default=None, help="bring-your-own gold dir (skip architect+engineer)")
     ap.add_argument("--target", default=None, help="measure to predict (scientist)")
     ap.add_argument("--fact", default=None, help="gold fact to model (scientist)")
+    ap.add_argument("--min-replicas", type=int, default=2, help="HPA min (sre)")
+    ap.add_argument("--max-replicas", type=int, default=6, help="HPA max (sre)")
     ap.add_argument("--policy", default="synthesize", choices=["synthesize", "ask", "strict"])
     args = ap.parse_args(argv)
 
     selection = [s.strip() for s in args.stages.split(",") if s.strip()]
     opts = {"run_root": args.run_root, "slug": args.slug, "sources": args.sources,
             "metrics_dir": args.metrics_dir, "ask": args.ask, "target": args.target, "fact": args.fact,
+            "min_replicas": args.min_replicas, "max_replicas": args.max_replicas,
             "policy": "synthesize" if args.policy == "ask" else args.policy,
             "supplied": {"gold": args.gold}}
     try:

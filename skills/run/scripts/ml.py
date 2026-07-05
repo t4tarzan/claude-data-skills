@@ -30,6 +30,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import mlcore
 MODEL = json.loads((HERE / "model.json").read_text())
+STATS = {"requests_total": 0, "errors_total": 0}
 
 class Handler(BaseHTTPRequestHandler):
     def _send(self, code, obj):
@@ -42,11 +43,20 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             self._send(200, {"status": "ok", "target": MODEL["target"], "version": MODEL["version"]})
+        elif self.path == "/metrics":
+            # Prometheus text exposition (scraped by the Data SRE ServiceMonitor)
+            body = ("# TYPE dt_up gauge\\ndt_up 1\\n"
+                    "# TYPE dt_requests_total counter\\ndt_requests_total %d\\n"
+                    "# TYPE dt_errors_total counter\\ndt_errors_total %d\\n"
+                    % (STATS["requests_total"], STATS["errors_total"])).encode()
+            self.send_response(200); self.send_header("Content-Type", "text/plain; version=0.0.4")
+            self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
         else:
             self._send(404, {"error": "not found"})
     def do_POST(self):
         if self.path != "/predict":
             self._send(404, {"error": "not found"}); return
+        STATS["requests_total"] += 1
         try:
             n = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(n) or b"{}")
@@ -54,6 +64,7 @@ class Handler(BaseHTTPRequestHandler):
             pred = mlcore.predict_one(MODEL, feats)
             self._send(200, {"prediction": pred, "target": MODEL["target"], "model_version": MODEL["version"]})
         except Exception as e:  # noqa: BLE001
+            STATS["errors_total"] += 1
             self._send(400, {"error": str(e)})
     def log_message(self, *a):
         pass

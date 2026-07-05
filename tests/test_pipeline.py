@@ -41,10 +41,15 @@ class TestResolver(unittest.TestCase):
         self.assertEqual(order, ["architect", "engineer", "designer", "analyst"])
         self.assertEqual(reasons, [])
 
-    def test_unimplemented_stage_errors(self):
-        # sre is not implemented until P8; selecting it should error clearly
+    def test_unknown_stage_errors(self):
+        # all eight roles are implemented now; an unknown stage name must still error clearly
         with self.assertRaises(rp.ResolveError):
-            rp.resolve(["sre"], supplied={"service"}, policy="synthesize")
+            rp.resolve(["bogus"], supplied=set(), policy="synthesize")
+
+    def test_sre_synthesizes_full_branch_b(self):
+        # sre needs a service -> pulls in scientist, engineer, architect
+        order, _ = rp.resolve(["sre"], supplied=set(), policy="synthesize")
+        self.assertEqual(order, ["architect", "engineer", "scientist", "ml", "sre"])
 
 
 class TestPipelineSmoke(unittest.TestCase):
