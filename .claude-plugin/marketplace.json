@@ -1,7 +1,7 @@
 {
   "name": "claude-data-skills",
-  "version": 1,
-  "owner": "t4tarzan",
+  "version": "1.0.0",
+  "owner": { "name": "t4tarzan", "url": "https://github.com/t4tarzan" },
   "description": "Claude Data Skills — a marketplace of data-lifecycle skills for Claude Code. First skill: data-team.",
   "plugins": [
     {
