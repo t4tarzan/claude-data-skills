@@ -26,6 +26,7 @@ import architect
 import bi as bi_stage
 import designer
 import engineer
+import governance as governance_plane
 import ml as ml_stage
 import scientist as scientist_stage
 import sre as sre_stage
@@ -141,7 +142,10 @@ def run(run_root: str, slug: str, selection: list[str], opts: dict) -> dict:
     for stage in order:
         opts2 = {**opts, "run_root": run_root, "slug": slug}
         results[stage] = _run_stage(stage, opts2)
-    return {"plan": order, "reasons": reasons, "results": results,
+    gov = None
+    if opts.get("governance_report", True):
+        gov = governance_plane.run(run_root, slug)  # cross-cutting plane: aggregate the envelopes
+    return {"plan": order, "reasons": reasons, "results": results, "governance": gov,
             "run_dir": str(ctx.dir), "manifest": str(ctx.manifest_path)}
 
 
@@ -160,12 +164,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--min-replicas", type=int, default=2, help="HPA min (sre)")
     ap.add_argument("--max-replicas", type=int, default=6, help="HPA max (sre)")
     ap.add_argument("--policy", default="synthesize", choices=["synthesize", "ask", "strict"])
+    ap.add_argument("--no-governance-report", action="store_true", help="skip the aggregated governance report")
     args = ap.parse_args(argv)
 
     selection = [s.strip() for s in args.stages.split(",") if s.strip()]
     opts = {"run_root": args.run_root, "slug": args.slug, "sources": args.sources,
             "metrics_dir": args.metrics_dir, "ask": args.ask, "target": args.target, "fact": args.fact,
             "min_replicas": args.min_replicas, "max_replicas": args.max_replicas,
+            "governance_report": not args.no_governance_report,
             "policy": "synthesize" if args.policy == "ask" else args.policy,
             "supplied": {"gold": args.gold}}
     try:
