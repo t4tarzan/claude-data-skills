@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dkube.app/data-team/stage-manifest.schema.json",
+  "title": "Data-Team stage manifest",
+  "description": "One object appended to run/manifest.json -> stages[] by each executed stage. See docs/01-artifact-contract.md.",
+  "type": "object",
+  "required": ["stage", "status", "started_at", "engine", "consumed", "produced", "governance"],
+  "additionalProperties": false,
+  "properties": {
+    "stage": { "enum": ["architect", "engineer", "designer", "analyst", "bi", "scientist", "ml", "sre"] },
+    "status": { "enum": ["ok", "partial", "failed", "skipped"] },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "engine": {
+      "type": "object",
+      "required": ["role", "model", "provider"],
+      "properties": {
+        "role": { "type": "string" },
+        "model": { "type": "string", "description": "resolved engine: local | hub2 | cloud, or a concrete model id" },
+        "provider": { "type": "string", "description": "claude | hub2 | openrouter | ..." }
+      }
+    },
+    "consumed": { "type": "object", "description": "contract key -> run-relative path (or {path, provenance:'supplied'})", "additionalProperties": true },
+    "produced": { "type": "object", "description": "contract key -> run-relative path (optionally with content hash)", "additionalProperties": true },
+    "governance": {
+      "type": "object",
+      "required": ["lineage", "pii", "contract", "quality"],
+      "additionalProperties": false,
+      "properties": {
+        "lineage": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["output", "from"],
+            "properties": {
+              "output": { "type": "string" },
+              "from": { "type": "array", "items": { "type": "string" } },
+              "logic": { "type": "string" }
+            }
+          }
+        },
+        "pii": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["column", "class", "action"],
+            "properties": {
+              "column": { "type": "string" },
+              "class": { "type": "string", "description": "email | phone | name | id | address | ..." },
+              "action": { "enum": ["masked", "flagged", "dropped"] }
+            }
+          }
+        },
+        "contract": {
+          "type": "object",
+          "required": ["name", "honored"],
+          "properties": {
+            "name": { "type": "string", "description": "dataset@version" },
+            "honored": { "type": "boolean" },
+            "violations": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "quality": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["check", "result"],
+            "properties": {
+              "check": { "type": "string" },
+              "result": { "enum": ["pass", "warn", "fail"] },
+              "detail": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "receipts": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}

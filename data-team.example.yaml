@@ -1,0 +1,31 @@
+# data-team.yaml — drop this in your working directory to configure a run.
+# Every setting also has a CLI flag and an env var; this file is just the convenient
+# middle of the resolution ladder (CLI > this file > env > plugin userConfig > default).
+# See docs/04-engine-and-sovereignty.md and docs/02-selection-resolver.md.
+
+# --- What to run -------------------------------------------------------------
+stages: [architect, engineer, designer, analyst]   # any subset; order is a hint (resolver topo-sorts)
+name: my-run                                        # run slug -> ./data-team-out/<name>/
+
+# --- Bring-your-own upstream artifacts (skip the producing stage) ------------
+supplied:
+  # gold: ./my_warehouse/        # then `stages: [analyst]` runs straight on your gold
+  # model: ./model.pkl
+
+# --- Missing-input policy ----------------------------------------------------
+policy: synthesize      # synthesize (auto-add upstream) | ask | strict
+
+# --- Engine per stage (sovereign local by default) ---------------------------
+engines:
+  architect: local
+  engineer:  local
+  designer:  local      # metric authoring — keep on strong reasoning
+  analyst:   local
+# cloud offload example (needs a key; silently falls back to local if absent):
+#   architect: cloud
+# cloud:
+#   provider: openrouter
+#   # key via env OPENROUTER_API_KEY, never written here
+
+# --- Governance --------------------------------------------------------------
+governance_report: true   # emit the aggregated governance/report.{json,html} at the end
