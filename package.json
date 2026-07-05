@@ -1,0 +1,30 @@
+{
+  "name": "data-team-skill",
+  "version": "0.1.0",
+  "description": "One-command installer for the `data-team` Claude Code plugin — a whole data team as /data-team:run. Eight composable data roles (medallion, governed semantic layer, BI, ML, SRE) over your own data. stdlib-only, sovereign.",
+  "bin": {
+    "data-team-skill": "bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "claude-code", "claude", "plugin", "skill", "data", "analytics",
+    "medallion", "semantic-layer", "metrics", "etl", "installer"
+  ],
+  "homepage": "https://github.com/t4tarzan/claude-data-skills#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t4tarzan/claude-data-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/t4tarzan/claude-data-skills/issues"
+  },
+  "author": "t4tarzan",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}

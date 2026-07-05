@@ -13,13 +13,15 @@ your local Claude is the engine.
 
 ## Install
 
-**One line** (installs via the `claude` CLI; re-run any time to pull the latest):
+**One command** — `npx` (cross-platform) or `curl` (macOS/Linux). Re-run any time to pull the latest:
 
 ```bash
+npx data-team-skill
+# — or —
 curl -fsSL https://raw.githubusercontent.com/t4tarzan/claude-data-skills/main/install.sh | bash
 ```
 
-**Or inside a Claude Code session** — two commands:
+**Or inside a Claude Code session** — two commands (this is what the installers run for you):
 
 ```
 /plugin marketplace add t4tarzan/claude-data-skills
@@ -31,6 +33,10 @@ Then invoke it:
 ```
 /data-team:run
 ```
+
+> All three do the same thing — add the git-hosted marketplace and install the plugin. `npx`/`curl` are
+> just convenience wrappers around the native `/plugin` commands; **no npm dependency is pulled into your
+> project.**
 
 ### Keep it up to date
 
